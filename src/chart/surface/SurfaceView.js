@@ -216,8 +216,14 @@ export default echarts.ChartView.extend({
         var column = dataShape[1];
         var shading = seriesModel.get('shading');
         var needsNormal = shading !== 'color';
-
-        if (needsSplitQuad) {
+        //------------------------------------------------------------GLD modify
+        var isMesh = seriesModel.get('isMesh');         //------------GLD modify
+        var user_indices = seriesModel.get('indices');  //------------GLD modify
+        var mesh_opacity = seriesModel.get('opacity');  //------------GLD modify
+        console.log(isMesh);
+        console.log(mesh_opacity);
+        if (needsSplitQuad&&!isMesh) {                  //------------GLD modify
+        //------------------------------------------------------------GLD modify
             // TODO, If needs remove the invalid points, or set color transparent.
             var vertexCount = (row - 1) * (column - 1) * 4;
             positionAttr.init(vertexCount);
@@ -242,17 +248,53 @@ export default echarts.ChartView.extend({
             [1, 0, 0, 1],
             [1, 0, 1, 0]
         ];
-
-        var indices = geometry.indices = new (geometry.vertexCount > 0xffff ? Uint32Array : Uint16Array)((row - 1) * (column - 1) * 6);
+        
+        //------------------------------------------------------------GLD modify
+        var indices = null;                             //------------GLD modify
+        if( isMesh ) {                                  //------------GLD modify
+            indices = geometry.indices = new (geometry.vertexCount > 0xffff ? Uint32Array : Uint16Array)(user_indices.length*3); //------------GLD modify
+        } else {                                        //------------GLD modify
+            indices = geometry.indices = new (geometry.vertexCount > 0xffff ? Uint32Array : Uint16Array)((row - 1) * (column - 1) * 6); //------------GLD modify
+        }                                               //------------GLD modify
+        //------------------------------------------------------------GLD modify
         var getQuadIndices = function (i, j, out) {
             out[1] = i * column + j;
             out[0] = i * column + j + 1;
             out[3] = (i + 1) * column + j + 1;
             out[2] = (i + 1) * column + j;
         };
-
         var isTransparent = false;
-
+        //------------------------------------------------------------GLD modify
+        if( isMesh ) {                                  //------------GLD modify
+            var mesh_color = graphicGL.parseColor(getItemVisualColor(data, i));
+            var uvArr = [];                             //------------GLD modify
+            for (var i = 0; i < data.count(); i++) {    //------------GLD modify
+                uvArr[0] = 0.5;                         //------------GLD modify
+                uvArr[1] = 0.5;                         //------------GLD modify
+                var rgbaArr = mesh_color;               //------------GLD modify
+                var opacity = mesh_opacity;             //------------GLD modify
+                rgbaArr[3] = opacity;                   //------------GLD modify
+                if (rgbaArr[3] < 0.99) {                //------------GLD modify
+                    isTransparent = true;               //------------GLD modify
+                }                                       //------------GLD modify
+                colorAttr.set(i, rgbaArr);              //------------GLD modify
+                texcoordAttr.set(i, uvArr);             //------------GLD modify
+            }                                           //------------GLD modify
+            // Triangles                                //------------GLD modify
+            var cursor = 0;                             //------------GLD modify
+            for (var i = 0;i<user_indices.length; i++){ //------------GLD modify
+                indices[cursor++] = user_indices[i][0]; //------------GLD modify
+                indices[cursor++] = user_indices[i][1]; //------------GLD modify
+                indices[cursor++] = user_indices[i][2]; //------------GLD modify
+            }                                           //------------GLD modify
+            if (needsNormal) {                          //------------GLD modify
+                geometry.generateVertexNormals();       //------------GLD modify
+            }                                           //------------GLD modify
+            else {                                      //------------GLD modify
+                normalAttr.value = null;                //------------GLD modify
+            }                                           //------------GLD modify
+        } else {                                        //------------GLD modify
+        //------------------------------------------------------------GLD modify
         if (needsSplitQuad) {
             var quadIndices = [];
             var pos = [];
@@ -422,6 +464,9 @@ export default echarts.ChartView.extend({
                 normalAttr.value = null;
             }
         }
+        //------------------------------------------------------------GLD modify
+        }                                               //------------GLD modify
+        //------------------------------------------------------------GLD modify
         if (surfaceMesh.material.get('normalMap')) {
             geometry.generateTangents();
         }
