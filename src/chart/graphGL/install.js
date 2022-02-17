@@ -40,7 +40,7 @@ export function install(registers) {
 
                 var symbolVisualList = ['symbol', 'symbolSize', 'symbolKeepAspect'];
 
-                for (let i = 0; i < symbolVisualList.length; i++) {
+                for (var i = 0; i < symbolVisualList.length; i++) {
                     var symbolVisual = itemModel.getShallow(symbolVisualList[i], true);
                     if (symbolVisual != null) {
                         categoriesData.setItemVisual(idx, symbolVisualList[i], symbolVisual);
@@ -52,7 +52,7 @@ export function install(registers) {
             if (categoriesData.count()) {
                 data.each(function (idx) {
                     var model = data.getItemModel(idx);
-                    let categoryIdx = model.getShallow('category');
+                    var categoryIdx = model.getShallow('category');
                     if (categoryIdx != null) {
                         if (typeof categoryIdx === 'string') {
                             categoryIdx = categoryNameIdxMap['ec-' + categoryIdx];
@@ -64,7 +64,7 @@ export function install(registers) {
 
                         var visualList = ['symbol', 'symbolSize', 'symbolKeepAspect'];
 
-                        for (let i = 0; i < visualList.length; i++) {
+                        for (var i = 0; i < visualList.length; i++) {
                             data.setItemVisual(
                                 idx, visualList[i],
                                 categoriesData.getItemVisual(categoryIdx, visualList[i])
